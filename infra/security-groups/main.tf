@@ -1,4 +1,6 @@
 variable "ec2_sg_name" {}
+variable "ec2_jenkins_sg_name" {}
+# variable "ec2_HashicorpVault_sg_name" {}
 variable "vpc_id" {}
 variable "public_subnet_cidr_block" {}
 variable "ec2_sg_name_for_python_api" {}
@@ -7,14 +9,17 @@ output "sg_ec2_sg_ssh_http_id" {
   value = aws_security_group.ec2_sg_ssh_http.id
 }
 
-output "rds_mysql_sg_id" {
-  value = aws_security_group.rds_mysql_sg.id
+output "sg_ec2_jenkins_port_8080" {
+  value = aws_security_group.ec2_jenkins_port_8080.id
 }
+# output "rds_mysql_sg_id" {
+#   value = aws_security_group.rds_mysql_sg.id
+# }
 
-output "sg_ec2_for_python_api" {
-  value = aws_security_group.ec2_sg_python_api.id
+# output "sg_ec2_for_python_api" {
+#   value = aws_security_group.ec2_sg_python_api.id
 
-}
+# }
 resource "aws_security_group" "ec2_sg_ssh_http" {
   name        = var.ec2_sg_name
   description = "Enable the Port 22(SSH) & Port 80(http)"
@@ -40,10 +45,18 @@ resource "aws_security_group" "ec2_sg_ssh_http" {
 
   # enable http
   ingress {
-    description = "Allow HTTP request from anywhere"
+    description = "Allow HTTPS request from anywhere"
     cidr_blocks = ["0.0.0.0/0"]
     from_port   = 443
     to_port     = 443
+    protocol    = "tcp"
+  }
+
+  ingress {
+    description = "Enable Port 8200 for Hashicorp Vault"
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 8200
+    to_port     = 8200
     protocol    = "tcp"
   }
 
@@ -61,35 +74,53 @@ resource "aws_security_group" "ec2_sg_ssh_http" {
   }
 }
 
-# Security Group for RDS
-resource "aws_security_group" "rds_mysql_sg" {
-  name        = "rds-sg"
-  description = "Allow access to RDS from EC2 present in public subnet"
+# Security Group for Jenkins Server
+resource "aws_security_group" "ec2_jenkins_port_8080" {
+  name        = var.ec2_jenkins_sg_name
+  description = "Enable Port 8080 for jenkins server"
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = var.public_subnet_cidr_block # replace with your EC2 instance security group CIDR block
-  }
-}
-
-resource "aws_security_group" "ec2_sg_python_api" {
-  name        = var.ec2_sg_name_for_python_api
-  description = "Enable the Port 5000 for python api"
-  vpc_id      = var.vpc_id
-
-  # ssh for terraform remote exec
-  ingress {
-    description = "Allow traffic on port 5000"
+    description = "Allow 8080 port to access Jenkins"
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 5000
-    to_port     = 5000
+    from_port   = 8080
+    to_port     = 8080
     protocol    = "tcp"
+    
   }
-
   tags = {
-    Name = "Security Groups to allow traffic on port 5000"
+    Name = "Security Group to allow port 8080"
   }
 }
+# Security Group for RDS
+# resource "aws_security_group" "rds_mysql_sg" {
+#   name        = "rds-sg"
+#   description = "Allow access to RDS from EC2 present in public subnet"
+#   vpc_id      = var.vpc_id
+
+#   ingress {
+#     from_port   = 3306
+#     to_port     = 3306
+#     protocol    = "tcp"
+#     cidr_blocks = var.public_subnet_cidr_block # replace with your EC2 instance security group CIDR block
+#   }
+# }
+
+# resource "aws_security_group" "ec2_sg_python_api" {
+#   name        = var.ec2_sg_name_for_python_api
+#   description = "Enable the Port 5000 for python api"
+#   vpc_id      = var.vpc_id
+
+#   # ssh for terraform remote exec
+#   ingress {
+#     description = "Allow traffic on port 5000"
+#     cidr_blocks = ["0.0.0.0/0"]
+#     from_port   = 5000
+#     to_port     = 5000
+#     protocol    = "tcp"
+#   }
+
+#   tags = {
+#     Name = "Security Groups to allow traffic on port 5000"
+#   }
+# }

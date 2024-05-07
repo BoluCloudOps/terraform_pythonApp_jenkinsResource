@@ -61,7 +61,7 @@ resource "aws_internet_gateway" "dev_proj_1_public_internet_gateway" {
 resource "aws_route_table" "dev_proj_1_public_route_table" {
   vpc_id = aws_vpc.dev_proj_1_vpc_eu_central_1.id
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block = "0.0.0.0/0" #allow Internet globally 
     gateway_id = aws_internet_gateway.dev_proj_1_public_internet_gateway.id
   }
   tags = {
@@ -79,7 +79,7 @@ resource "aws_route_table_association" "dev_proj_1_public_rt_subnet_association"
 # Private Route Table
 resource "aws_route_table" "dev_proj_1_private_subnets" {
   vpc_id = aws_vpc.dev_proj_1_vpc_eu_central_1.id
-  #depends_on = [aws_nat_gateway.nat_gateway]
+  #depends_on = [aws_nat_gateway.nat_gateway] NAT gateway ensures a two-way communication with the private subnet from the outside
   tags = {
     Name = "dev-proj-1-private-rt"
   }

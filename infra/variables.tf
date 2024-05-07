@@ -57,3 +57,5 @@ variable "domain_name" {
   type = string
   description = "Name of the domain"
 }
+
+variable "env_prefix" {}
